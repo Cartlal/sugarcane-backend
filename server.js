@@ -9,20 +9,35 @@ const adviceRoutes = require("./routes/adviceRoutes");
 const analyzeRoutes = require("./routes/analyzeRoutes");
 
 const app = express();
-app.use(cors());
+
+// ✅ Enable CORS for Netlify and any origin
+app.use(
+  cors({
+    origin: "*", // allow all origins (Netlify, local, etc.)
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
+// ✅ Middleware
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
+// ✅ MongoDB Connection
+mongoose
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// Routes
+// ✅ API Routes
 app.use("/api", farmerRoutes);
 app.use("/api", adviceRoutes);
 app.use("/api", analyzeRoutes);
 
-app.get("/", (req, res) => res.send("✅ Sugarcane backend running"));
+// ✅ Health check route
+app.get("/", (req, res) => {
+  res.send("✅ Sugarcane backend running successfully");
+});
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+// ✅ Start server
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`✅ Server live on port ${PORT}`));
