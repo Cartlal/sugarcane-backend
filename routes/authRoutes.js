@@ -3,71 +3,74 @@ const bcrypt = require("bcryptjs");
 const Farmer = require("../models/Farmer");
 const router = express.Router();
 
-// ======================= SIGNUP =======================
+
+// ================== SIGNUP ==================
 router.post("/signup", async (req, res) => {
   try {
-    const farmerData = req.body;
+    const { email, phone, password } = req.body;
 
-    // Check phone number already exists
-    const exists = await Farmer.findOne({ phone: farmerData.phone });
+    if (!email || !phone || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Check if email or phone already registered
+    const exists = await Farmer.findOne({ $or: [{ email }, { phone }] });
     if (exists) {
-      return res.status(400).json({ error: "Phone number already registered" });
+      return res.status(400).json({ error: "Email or phone already registered" });
     }
 
-    // Check password exists
-    if (!farmerData.password || farmerData.password.length < 4) {
-      return res.status(400).json({ error: "Password must be at least 4 characters" });
-    }
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Encrypt password
-    farmerData.password = await bcrypt.hash(farmerData.password, 10);
-
-    // Save farmer
-    const farmer = await Farmer.create(farmerData);
+    const farmer = await Farmer.create({
+      email,
+      phone,
+      password: hashedPassword
+    });
 
     res.json({
       message: "Signup successful",
       farmer: {
         id: farmer._id,
-        name: farmer.name,
-        surname: farmer.surname,
-        village: farmer.village,
-        yearsFarming: farmer.yearsFarming,
-        mainCrop: farmer.mainCrop,
-      },
+        email: farmer.email,
+        phone: farmer.phone
+      }
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ======================= LOGIN =======================
+
+// ================== LOGIN ==================
 router.post("/login", async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    const { email, password } = req.body;
 
-    // Check farmer exists
-    const farmer = await Farmer.findOne({ phone });
-    if (!farmer) return res.status(404).json({ error: "Farmer not found" });
+    const farmer = await Farmer.findOne({ email });
+    if (!farmer) {
+      return res.status(404).json({ error: "Email not registered" });
+    }
 
-    // Compare password
     const valid = await bcrypt.compare(password, farmer.password);
-    if (!valid) return res.status(401).json({ error: "Incorrect password" });
+    if (!valid) {
+      return res.status(401).json({ error: "Incorrect password" });
+    }
 
     res.json({
       message: "Login successful",
       farmer: {
         id: farmer._id,
-        name: farmer.name,
-        surname: farmer.surname,
-        village: farmer.village,
-        yearsFarming: farmer.yearsFarming,
-        mainCrop: farmer.mainCrop,
-      },
+        email: farmer.email,
+        phone: farmer.phone
+      }
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;
