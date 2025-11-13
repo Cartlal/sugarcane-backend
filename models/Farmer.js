@@ -2,28 +2,9 @@ const mongoose = require("mongoose");
 
 const farmerSchema = new mongoose.Schema({
 
-  // ============================
-  // LOGIN ACCOUNT FIELDS
-  // ============================
-  email: {
-    type: String,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
+  // PROFILE DATA ONLY (No login fields here)
+  email: { type: String, required: true },  // this connects profile to user
 
-  phone: {
-    type: String,
-    trim: true,
-  },
-
-  password: {
-    type: String,
-  },
-
-  // ============================
-  // FARMER PROFILE FIELDS
-  // ============================
   name: { type: String, trim: true },
   middleName: { type: String, trim: true },
   surname: { type: String, trim: true },
@@ -43,7 +24,6 @@ const farmerSchema = new mongoose.Schema({
   soilType: { type: String, trim: true },
   irrigationType: { type: String, trim: true },
 
-}, { timestamps: true }); 
-// createdAt + updatedAt fields auto-added
+}, { timestamps: true });
 
 module.exports = mongoose.model("Farmer", farmerSchema);
