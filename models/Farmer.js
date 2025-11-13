@@ -4,17 +4,21 @@ const farmerSchema = new mongoose.Schema({
   name: String,
   middleName: String,
   surname: String,
-  phone: { type: String, unique: true },
+  phone: { type: String, required: true, unique: true },
   address: String,
   pincode: String,
   village: String,
   district: String,
   state: String,
   plotSize: String,
-  yearsFarming: String,
+  yearsFarming: Number,
   mainCrop: String,
   secondaryCrop: String,
   soilType: String,
   irrigationType: String,
-  password: { type: String, required: true }
+  
+  // Required for login
+  password: { type: String, required: true },
 });
+
+module.exports = mongoose.model("Farmer", farmerSchema);
