@@ -2,32 +2,42 @@ const express = require("express");
 const router = express.Router();
 const Farmer = require("../models/Farmer");
 
-// Register a farmer
+// ============================
+// CREATE NEW FARMER PROFILE
+// ============================
 router.post("/register", async (req, res) => {
   try {
-    const farmer = new Farmer(req.body);
-    await farmer.save();
-    res.status(201).json({ message: "Farmer registered", farmer });
+    const farmer = await Farmer.create(req.body);
+
+    res.status(201).json({
+      message: "Farmer registered successfully",
+      farmer,
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 // ============================
-// UPDATE FARMER PROFILE
+// UPDATE-PROFILE (Same as register)
+// but allows updating by _id
 // ============================
 router.post("/update-profile", async (req, res) => {
   try {
-    const { email, ...profileData } = req.body;
+    const { id, ...updateData } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
+    // If no ID provided → create new farmer
+    if (!id) {
+      const farmer = await Farmer.create(updateData);
+      return res.json({
+        message: "Profile saved successfully",
+        farmer,
+      });
     }
 
-    const farmer = await Farmer.findOneAndUpdate(
-      { email },
-      profileData,
-      { new: true }
-    );
+    // If ID provided → update farmer
+    const farmer = await Farmer.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!farmer) {
       return res.status(404).json({ error: "Farmer not found" });
@@ -35,7 +45,7 @@ router.post("/update-profile", async (req, res) => {
 
     res.json({
       message: "Profile updated successfully",
-      farmer
+      farmer,
     });
 
   } catch (err) {
