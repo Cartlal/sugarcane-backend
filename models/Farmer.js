@@ -1,27 +1,51 @@
 const mongoose = require("mongoose");
 
 const farmerSchema = new mongoose.Schema({
-  // LOGIN FIELDS
-  email: { type: String, required: true, unique: true },
-  phone: { type: String, required: true },
 
-  password: { type: String, required: true },
+  // ============================
+  // LOGIN ACCOUNT FIELDS
+  // ============================
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+  },
 
-  // FARMER REGISTRATION FIELDS
-  name: String,
-  middleName: String,
-  surname: String,
-  address: String,
-  pincode: String,
-  village: String,
-  district: String,
-  state: String,
-  plotSize: String,
-  yearsFarming: Number,
-  mainCrop: String,
-  secondaryCrop: String,
-  soilType: String,
-  irrigationType: String,
-});
+  phone: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+
+  password: {
+    type: String,
+    required: true,
+  },
+
+  // ============================
+  // FARMER PROFILE FIELDS
+  // ============================
+  name: { type: String, trim: true },
+  middleName: { type: String, trim: true },
+  surname: { type: String, trim: true },
+
+  address: { type: String, trim: true },
+  pincode: { type: String, trim: true },
+  village: { type: String, trim: true },
+  district: { type: String, trim: true },
+  state: { type: String, trim: true },
+
+  plotSize: { type: String, trim: true },
+  yearsFarming: { type: Number, default: 0 },
+
+  mainCrop: { type: String, trim: true },
+  secondaryCrop: { type: String, trim: true },
+
+  soilType: { type: String, trim: true },
+  irrigationType: { type: String, trim: true },
+
+}, { timestamps: true }); // Includes createdAt & updatedAt automatically
 
 module.exports = mongoose.model("Farmer", farmerSchema);
