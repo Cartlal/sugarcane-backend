@@ -51,6 +51,7 @@ router.post("/signup", async (req, res) => {
 
     res.json({
       message: "Signup successful",
+      redirect: "index.html",
       farmer: {
         id: farmer._id,
         email: farmer.email,
