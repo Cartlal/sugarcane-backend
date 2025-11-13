@@ -2,15 +2,31 @@ const express = require("express");
 const router = express.Router();
 const Farmer = require("../models/Farmer");
 
-// ============================
-// CREATE NEW FARMER PROFILE
-// ============================
-router.post("/register", async (req, res) => {
-  try {
-    const farmer = await Farmer.create(req.body);
 
-    res.status(201).json({
-      message: "Farmer registered successfully",
+// =====================================================
+// 1️⃣ CREATE FARMER PROFILE (after login/signup)
+// =====================================================
+router.post("/register-profile", async (req, res) => {
+  try {
+    const { email, ...profileData } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // update only profile fields (not password or phone)
+    const farmer = await Farmer.findOneAndUpdate(
+      { email },
+      { $set: profileData },
+      { new: true }
+    );
+
+    if (!farmer) {
+      return res.status(404).json({ error: "Farmer not found" });
+    }
+
+    res.json({
+      message: "Profile saved successfully",
       farmer,
     });
 
@@ -19,25 +35,23 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// ============================
-// UPDATE-PROFILE (Same as register)
-// but allows updating by _id
-// ============================
+
+// =====================================================
+// 2️⃣ UPDATE PROFILE (edit profile later)
+// =====================================================
 router.post("/update-profile", async (req, res) => {
   try {
-    const { id, ...updateData } = req.body;
+    const { email, ...updateData } = req.body;
 
-    // If no ID provided → create new farmer
-    if (!id) {
-      const farmer = await Farmer.create(updateData);
-      return res.json({
-        message: "Profile saved successfully",
-        farmer,
-      });
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
     }
 
-    // If ID provided → update farmer
-    const farmer = await Farmer.findByIdAndUpdate(id, updateData, { new: true });
+    const farmer = await Farmer.findOneAndUpdate(
+      { email },
+      updateData,
+      { new: true }
+    );
 
     if (!farmer) {
       return res.status(404).json({ error: "Farmer not found" });
