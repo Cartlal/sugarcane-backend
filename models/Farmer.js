@@ -7,7 +7,6 @@ const farmerSchema = new mongoose.Schema({
   // ============================
   email: {
     type: String,
-    required: true,
     unique: true,
     lowercase: true,
     trim: true,
@@ -15,13 +14,11 @@ const farmerSchema = new mongoose.Schema({
 
   phone: {
     type: String,
-    required: true,
     trim: true,
   },
 
   password: {
     type: String,
-    required: true,
   },
 
   // ============================
