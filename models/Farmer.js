@@ -46,6 +46,7 @@ const farmerSchema = new mongoose.Schema({
   soilType: { type: String, trim: true },
   irrigationType: { type: String, trim: true },
 
-}, { timestamps: true }); // Includes createdAt & updatedAt automatically
+}, { timestamps: true }); 
+// createdAt + updatedAt fields auto-added
 
 module.exports = mongoose.model("Farmer", farmerSchema);
