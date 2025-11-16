@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const Farmer = require("../models/Farmer");
+const User = require("../models/User");
 
 const router = express.Router();
 
@@ -31,17 +31,17 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "Password must be at least 6 characters long" });
     }
 
-    // Check if email/phone already exists
-    const exists = await Farmer.findOne({ $or: [{ email }, { phone }] });
+    // Check if email already exists
+    const exists = await User.findOne({ email });
     if (exists) {
-      return res.status(400).json({ error: "Email or phone is already registered" });
+      return res.status(400).json({ error: "Email is already registered" });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create login account only (profile comes later!)
-    const farmer = await Farmer.create({
+    // Create User (auth account only)
+    const user = await User.create({
       email,
       phone,
       password: hashedPassword
@@ -49,11 +49,10 @@ router.post("/signup", async (req, res) => {
 
     res.json({
       message: "Signup successful",
-      redirect: "index.html", // registration form page
-      farmer: {
-        id: farmer._id,
-        email: farmer.email,
-        phone: farmer.phone
+      user: {
+        id: user._id,
+        email: user.email,
+        phone: user.phone
       }
     });
 
@@ -74,22 +73,25 @@ router.post("/login", async (req, res) => {
     }
 
     // Check if email exists
-    const farmer = await Farmer.findOne({ email });
+    const user = await User.findOne({ email });
 
-    if (!farmer) {
+    if (!user) {
       return res.status(404).json({ error: "Email not registered" });
     }
 
     // Compare hashed password
-    const valid = await bcrypt.compare(password, farmer.password);
+    const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(401).json({ error: "Incorrect password" });
     }
 
-    // SEND FULL FARMER PROFILE to Home page
     res.json({
       message: "Login successful",
-      farmer: farmer  // FULL OBJECT ─ includes name, address, farming experience, etc.
+      user: {
+        id: user._id,
+        email: user.email,
+        phone: user.phone
+      }
     });
 
   } catch (err) {
