@@ -2,9 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Farmer = require("../models/Farmer");
 
-
 // =====================================================
-// 1️⃣ CREATE FARMER PROFILE (after login/signup)
+// 1️⃣ CREATE or UPDATE FARMER PROFILE (smart auto-upsert)
 // =====================================================
 router.post("/register-profile", async (req, res) => {
   try {
@@ -14,16 +13,12 @@ router.post("/register-profile", async (req, res) => {
       return res.status(400).json({ error: "Email is required" });
     }
 
-    // update only profile fields (not password or phone)
+    // Create new farmer profile OR update existing one
     const farmer = await Farmer.findOneAndUpdate(
       { email },
       { $set: profileData },
-      { new: true }
+      { new: true, upsert: true }   // <--- IMPORTANT
     );
-
-    if (!farmer) {
-      return res.status(404).json({ error: "Farmer not found" });
-    }
 
     res.json({
       message: "Profile saved successfully",
@@ -37,7 +32,7 @@ router.post("/register-profile", async (req, res) => {
 
 
 // =====================================================
-// 2️⃣ UPDATE PROFILE (edit profile later)
+// 2️⃣ UPDATE EXISTING PROFILE (farmer must exist)
 // =====================================================
 router.post("/update-profile", async (req, res) => {
   try {
@@ -49,7 +44,7 @@ router.post("/update-profile", async (req, res) => {
 
     const farmer = await Farmer.findOneAndUpdate(
       { email },
-      updateData,
+      { $set: updateData },
       { new: true }
     );
 
