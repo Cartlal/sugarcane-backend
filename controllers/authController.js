@@ -4,24 +4,36 @@ const bcrypt = require("bcryptjs");
 // ------------------- SIGNUP -------------------
 exports.signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { email, phone, password } = req.body;
+
+    if (!email || !phone || !password) {
+      return res.status(400).json({ error: "Email, phone, and password are required" });
+    }
 
     const exists = await User.findOne({ email });
     if (exists) {
       return res.status(400).json({ error: "Email already registered" });
     }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
       email,
-      password: hashed,
+      phone,
+      password: hashedPassword
     });
 
-    res.json({ message: "Signup successful", user });
+    return res.json({
+      message: "Signup successful",
+      user: {
+        id: user._id,
+        email: user.email,
+        phone: user.phone
+      }
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -30,14 +42,30 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: "User not found" });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(400).json({ error: "Incorrect password" });
+    if (!valid) {
+      return res.status(401).json({ error: "Incorrect password" });
+    }
 
-    res.json({ message: "Login successful", user });
+    return res.json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        email: user.email,
+        phone: user.phone
+      }
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
