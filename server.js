@@ -11,7 +11,7 @@ const app = express();
 // ===== MIDDLEWARE =====
 app.use(
   cors({
-    origin: "*", // allow Netlify + all browsers
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type"],
   })
@@ -33,11 +33,11 @@ mongoose
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // ===== REGISTER API ROUTES =====
-app.use("/api/auth", authRoutes);     // Login / Signup
-app.use("/api", farmerRoutes);        // Farmer CRUD
-app.use("/api", adviceRoutes);        // AI Advice
-app.use("/api", analyzeRoutes);       // Model testing
-app.use("/api", adminRoutes);         // Admin operations
+app.use("/api/auth", authRoutes);     
+app.use("/api", farmerRoutes);        
+app.use("/api", adviceRoutes);        
+app.use("/api", analyzeRoutes);       
+app.use("/api", adminRoutes);         
 
 // ===== ROOT HEALTH CHECK =====
 app.get("/", (req, res) => {
@@ -46,13 +46,14 @@ app.get("/", (req, res) => {
     <p>All systems running.</p>
     <h3>Available Endpoints:</h3>
     <ul>
-      <li><b>POST</b> /api/auth/signup – Farmer Signup</li>
-      <li><b>POST</b> /api/auth/login – Farmer Login</li>
-      <li><b>POST</b> /api/register – Full Registration</li>
-      <li><b>GET</b> /api/farmers – List all farmers</li>
-      <li><b>DELETE</b> /api/delete/:id – Remove a farmer (Admin)</li>
+      <li><b>POST</b> /api/auth/signup – User Signup</li>
+      <li><b>POST</b> /api/auth/login – User Login</li>
+      <li><b>POST</b> /api/register-profile – Create Farmer Profile</li>
+      <li><b>POST</b> /api/update-profile – Update Farmer Profile</li>
       <li><b>POST</b> /api/advice – Get AI Advice</li>
-      <li><b>POST</b> /api/analyze – Teachable Machine test</li>
+      <li><b>POST</b> /api/analyze – Teachable Machine Analysis</li>
+      <li><b>GET</b> /api/admin/farmers – Admin: List Farmers</li>
+      <li><b>DELETE</b> /api/admin/delete/:id – Admin: Delete Farmer</li>
     </ul>
   `);
 });
