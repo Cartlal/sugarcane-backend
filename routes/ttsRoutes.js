@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+const axios = require("axios"); // Use axios for better stability
 
 router.post("/tts", async (req, res) => {
   try {
@@ -18,26 +17,30 @@ router.post("/tts", async (req, res) => {
 
     const code = langMap[lang] || "en";
 
-    const ttsUrl =
-      `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${code}&q=${encodeURIComponent(text)}`;
+    // Google TTS Endpoint
+    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${code}&q=${encodeURIComponent(text)}`;
 
-    const googleRes = await fetch(ttsUrl, {
+    // Request audio as a stream (arraybuffer)
+    const response = await axios({
+      method: "get",
+      url: ttsUrl,
+      responseType: "arraybuffer", // Crucial: Get raw binary data
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
     });
 
-    const audioBuffer = await googleRes.arrayBuffer();
-
+    // Send audio back to frontend
     res.set({
       "Content-Type": "audio/mpeg",
-      "Content-Length": audioBuffer.byteLength,
+      "Content-Length": response.data.length,
     });
 
-    res.send(Buffer.from(audioBuffer));
+    res.send(response.data);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("TTS Error:", err.message);
+    res.status(500).json({ error: "Failed to generate audio" });
   }
 });
 
