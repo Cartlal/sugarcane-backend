@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const textToSpeech = require("@google-cloud/text-to-speech");
-const client = new textToSpeech.TextToSpeechClient();
+const axios = require("axios");
 
 router.post("/tts", async (req, res) => {
   try {
@@ -11,39 +10,33 @@ router.post("/tts", async (req, res) => {
       return res.status(400).json({ error: "Text is required" });
     }
 
-    // Map frontend language → correct Indian TTS voice
-    const voiceMap = {
-      English: "en-IN",
-      Hindi: "hi-IN",
-      Kannada: "kn-IN",
-      Marathi: "mr-IN",
+    // Map your app languages → correct Indian voice models
+    const modelMap = {
+      English: "ai4bharat/indic-tts-en",
+      Hindi: "ai4bharat/indic-tts-hi",
+      Kannada: "ai4bharat/indic-tts-kn",
+      Marathi: "ai4bharat/indic-tts-mr",
     };
 
-    const languageCode = voiceMap[lang] || "en-IN";
+    const model = modelMap[lang] || modelMap["English"];
 
-    const request = {
-      input: { text },
-      voice: {
-        languageCode,
-        ssmlGender: "FEMALE",
+    const response = await axios({
+      url: `https://api-inference.huggingface.co/models/${model}`,
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.HF_KEY}`,
+        "Content-Type": "application/json",
       },
-      audioConfig: {
-        audioEncoding: "MP3",
-      },
-    };
-
-    const [response] = await client.synthesizeSpeech(request);
-
-    res.set({
-      "Content-Type": "audio/mpeg",
-      "Content-Length": response.audioContent.length,
+      data: { text },
+      responseType: "arraybuffer",
     });
 
-    res.send(response.audioContent);
+    res.setHeader("Content-Type", "audio/wav");
+    res.send(response.data);
 
   } catch (err) {
-    console.error("TTS Error:", err);
-    res.status(500).json({ error: "Failed to generate audio" });
+    console.error("TTS ERROR:", err.message);
+    res.status(500).json({ error: "TTS generation failed" });
   }
 });
 
