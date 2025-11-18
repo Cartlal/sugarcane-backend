@@ -6,31 +6,29 @@ router.post("/tts", async (req, res) => {
   try {
     const { text, lang } = req.body;
 
-    if (!text) {
+    if (!text)
       return res.status(400).json({ error: "Text is required" });
-    }
 
-    // MAPPING to ACTIVE WORKING MODELS
-    const models = {
-      English: "coqui/XTTS-v2",
-      Kannada: "facebook/mms-tts-kan",
-      Hindi: "facebook/mms-tts-hin",
-      Marathi: "facebook/mms-tts-mar",
+    const langMap = {
+      English: "en",
+      Hindi: "hi",
+      Kannada: "kn",
+      Marathi: "mr",
     };
 
-    const selectedModel = models[lang] || models["English"];
+    const code = langMap[lang] || "en";
 
-    const HF_API = process.env.HF_KEY;
+    const ttsUrl =
+      `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${code}&q=${encodeURIComponent(text)}`;
 
     const response = await axios({
-      url: `https://api-inference.huggingface.co/models/${selectedModel}`,
-      method: "POST",
+      method: "GET",
+      url: ttsUrl,
       responseType: "arraybuffer",
       headers: {
-        "Authorization": `Bearer ${HF_API}`,
-        "Content-Type": "application/json",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
-      data: { inputs: text },
     });
 
     res.set({
@@ -41,8 +39,8 @@ router.post("/tts", async (req, res) => {
     res.send(response.data);
 
   } catch (err) {
-    console.error("TTS ERROR:", err.response?.status, err.message);
-    res.status(500).json({ error: "TTS failed" });
+    console.error("TTS ERROR:", err.message);
+    return res.status(500).json({ error: "TTS failed" });
   }
 });
 
