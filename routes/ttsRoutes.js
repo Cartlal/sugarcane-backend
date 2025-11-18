@@ -10,33 +10,39 @@ router.post("/tts", async (req, res) => {
       return res.status(400).json({ error: "Text is required" });
     }
 
-    // Map your app languages → correct Indian voice models
-    const modelMap = {
-      English: "ai4bharat/indic-tts-en",
-      Hindi: "ai4bharat/indic-tts-hi",
-      Kannada: "ai4bharat/indic-tts-kn",
-      Marathi: "ai4bharat/indic-tts-mr",
+    // MAPPING to ACTIVE WORKING MODELS
+    const models = {
+      English: "coqui/XTTS-v2",
+      Kannada: "facebook/mms-tts-kan",
+      Hindi: "facebook/mms-tts-hin",
+      Marathi: "facebook/mms-tts-mar",
     };
 
-    const model = modelMap[lang] || modelMap["English"];
+    const selectedModel = models[lang] || models["English"];
+
+    const HF_API = process.env.HF_KEY;
 
     const response = await axios({
-      url: `https://api-inference.huggingface.co/models/${model}`,
+      url: `https://api-inference.huggingface.co/models/${selectedModel}`,
       method: "POST",
+      responseType: "arraybuffer",
       headers: {
-        Authorization: `Bearer ${process.env.HF_KEY}`,
+        "Authorization": `Bearer ${HF_API}`,
         "Content-Type": "application/json",
       },
-      data: { text },
-      responseType: "arraybuffer",
+      data: { inputs: text },
     });
 
-    res.setHeader("Content-Type", "audio/wav");
+    res.set({
+      "Content-Type": "audio/mpeg",
+      "Content-Length": response.data.length,
+    });
+
     res.send(response.data);
 
   } catch (err) {
-    console.error("TTS ERROR:", err.message);
-    res.status(500).json({ error: "TTS generation failed" });
+    console.error("TTS ERROR:", err.response?.status, err.message);
+    res.status(500).json({ error: "TTS failed" });
   }
 });
 
