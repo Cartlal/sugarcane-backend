@@ -1,45 +1,48 @@
 const express = require("express");
 const router = express.Router();
-const axios = require("axios"); // Use axios for better stability
+const textToSpeech = require("@google-cloud/text-to-speech");
+const client = new textToSpeech.TextToSpeechClient();
 
 router.post("/tts", async (req, res) => {
   try {
     const { text, lang } = req.body;
 
-    if (!text) return res.status(400).json({ error: "Text is required" });
+    if (!text) {
+      return res.status(400).json({ error: "Text is required" });
+    }
 
-    const langMap = {
-      English: "en",
-      Hindi: "hi",
-      Kannada: "kn",
-      Marathi: "mr",
+    // Map frontend language → correct Indian TTS voice
+    const voiceMap = {
+      English: "en-IN",
+      Hindi: "hi-IN",
+      Kannada: "kn-IN",
+      Marathi: "mr-IN",
     };
 
-    const code = langMap[lang] || "en";
+    const languageCode = voiceMap[lang] || "en-IN";
 
-    // Google TTS Endpoint
-    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${code}&q=${encodeURIComponent(text)}`;
-
-    // Request audio as a stream (arraybuffer)
-    const response = await axios({
-      method: "get",
-      url: ttsUrl,
-      responseType: "arraybuffer", // Crucial: Get raw binary data
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    const request = {
+      input: { text },
+      voice: {
+        languageCode,
+        ssmlGender: "FEMALE",
       },
-    });
+      audioConfig: {
+        audioEncoding: "MP3",
+      },
+    };
 
-    // Send audio back to frontend
+    const [response] = await client.synthesizeSpeech(request);
+
     res.set({
       "Content-Type": "audio/mpeg",
-      "Content-Length": response.data.length,
+      "Content-Length": response.audioContent.length,
     });
 
-    res.send(response.data);
+    res.send(response.audioContent);
 
   } catch (err) {
-    console.error("TTS Error:", err.message);
+    console.error("TTS Error:", err);
     res.status(500).json({ error: "Failed to generate audio" });
   }
 });
