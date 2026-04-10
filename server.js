@@ -71,7 +71,7 @@ app.get("/", (req, res) => {
       <li><b>POST</b> /api/tts – Text-to-Speech Audio</li>
 
       <li><b>GET</b> /api/admin/farmers – Admin: List All Farmers</li>
-      <li><b>DELETE</b> /api/admin/delete/:id – Admin: Delete Farmer</li>
+      <li><b>DELETE</b> /api/farmers/:id – Admin: Delete Farmer</li>
     </ul>
   `);
 });
